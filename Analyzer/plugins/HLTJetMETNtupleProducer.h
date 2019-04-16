@@ -177,6 +177,8 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   std::vector<bool> muonIsGlobal_;
   std::vector<bool> muonIsTracker_;
   std::vector<bool> muonIsICHEPMedium_;
+  std::vector<bool> muonIsMedium_;
+  std::vector<bool> muonIsMediumPrompt_;
   std::vector<float> muonDz_;
   std::vector<float> muonDxy_;
   //std::vector<float> muonNormChi2_;
@@ -196,18 +198,6 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   std::vector<float> elecR03SumNeutralHadronEt_;
   std::vector<float> elecR03SumPhotonEt_;
   std::vector<float> elecR03SumPUPt_;
-  //std::vector<float> elec_mva_value_nontrig_Spring15_v1_;
-  //std::vector<float> elec_mva_value_trig_Spring15_v1_;
-  //std::vector<int> elec_mva_category_nontrig_Spring15_v1_;
-  //std::vector<int> elec_mva_category_trig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp80_nontrig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp90_nontrig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp80_trig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp90_trig_Spring15_v1_;
-  //std::vector<bool> elec_cutId_veto_Spring15_;
-  //std::vector<bool> elec_cutId_loose_Spring15_;
-  //std::vector<bool> elec_cutId_medium_Spring15_;
-  //std::vector<bool> elec_cutId_tight_Spring15_;
   std::vector<bool> elec_mva_medium_Spring16_v1_;
   std::vector<bool> elec_mva_tight_Spring16_v1_;
   std::vector<float> elec_mva_value_Spring16_v1_;

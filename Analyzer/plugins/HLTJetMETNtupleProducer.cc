@@ -328,6 +328,8 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 	muonIsGlobal_.push_back((*Muons)[i].isGlobalMuon());
 	muonIsTracker_.push_back((*Muons)[i].isTrackerMuon());
 	muonIsICHEPMedium_.push_back(isICHEPMuon((*Muons)[i]));
+	muonIsMedium_.push_back((*Muons)[i].passed(reco::Muon::CutBasedIdMedium));
+	muonIsMediumPrompt_.push_back((*Muons)[i].passed(reco::Muon::CutBasedIdMediumPrompt));
 	reco::TrackRef bestTrack  = (*Muons)[i].muonBestTrack();
 	if (bestTrack.isNonnull()) {
 	  muonDxy_.push_back(bestTrack->dxy(pv_position));
@@ -343,16 +345,6 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<edm::View<pat::Electron> > Electrons;
   iEvent.getByToken(ElectronCollectionToken_, Electrons);
 
-  // cut based
-  //edm::Handle<edm::ValueMap<bool> > veto_id_decisions;
-  //edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-  //edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
-  //edm::Handle<edm::ValueMap<bool> > tight_id_decisions;
-  //iEvent.getByToken(eleVetoIdMapToken_,veto_id_decisions);
-  //iEvent.getByToken(eleLooseIdMapToken_,loose_id_decisions);
-  //iEvent.getByToken(eleMediumIdMapToken_,medium_id_decisions);
-  //iEvent.getByToken(eleTightIdMapToken_,tight_id_decisions);
-
   // cut based                                                                                                                                                                           
   edm::Handle<edm::ValueMap<bool> > summer16_veto_id_decisions;
   edm::Handle<edm::ValueMap<bool> > summer16_loose_id_decisions;
@@ -364,25 +356,6 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   iEvent.getByToken(eleSummer16TightIdMapToken_,summer16_tight_id_decisions);
 
   // mva
-  /*edm::Handle<edm::ValueMap<bool> > nontrig_wp80_decisions;
-  edm::Handle<edm::ValueMap<bool> > nontrig_wp90_decisions;
-  edm::Handle<edm::ValueMap<bool> > trig_wp80_decisions;
-  edm::Handle<edm::ValueMap<bool> > trig_wp90_decisions;
-  iEvent.getByToken(eleMvaNonTrigWP80MapToken_,nontrig_wp80_decisions);
-  iEvent.getByToken(eleMvaNonTrigWP90MapToken_,nontrig_wp90_decisions);
-  iEvent.getByToken(eleMvaTrigWP80MapToken_,trig_wp80_decisions);
-  iEvent.getByToken(eleMvaTrigWP90MapToken_,trig_wp90_decisions);
-
-  edm::Handle<edm::ValueMap<float> > mvaNonTrigValues;
-  edm::Handle<edm::ValueMap<int> > mvaNonTrigCategories;
-  iEvent.getByToken(mvaNonTrigValuesMapToken_,mvaNonTrigValues);
-  iEvent.getByToken(mvaNonTrigCategoriesMapToken_,mvaNonTrigCategories);
-
-  edm::Handle<edm::ValueMap<float> > mvaTrigValues;
-  edm::Handle<edm::ValueMap<int> > mvaTrigCategories;
-  iEvent.getByToken(mvaTrigValuesMapToken_,mvaTrigValues);
-  iEvent.getByToken(mvaTrigCategoriesMapToken_,mvaTrigCategories);
-  */
   edm::Handle<edm::ValueMap<bool> > spring16_medium_decisions;
   edm::Handle<edm::ValueMap<bool> > spring16_tight_decisions;
   iEvent.getByToken(eleMvaSpring16WPMediumMapToken_,spring16_medium_decisions);
@@ -396,12 +369,6 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   elecPx_.clear(); elecPy_.clear(); elecPz_.clear(); elecPt_.clear(); elecEta_.clear();
   elecPhi_.clear(); elecCharge_.clear(); elecR03SumChargedHadronPt_.clear(); elecR03SumChargedParticlePt_.clear();
   elecR03SumNeutralHadronEt_.clear(); elecR03SumPhotonEt_.clear(); elecR03SumPUPt_.clear();
-  //elec_mva_value_nontrig_Spring15_v1_.clear(); elec_mva_value_trig_Spring15_v1_.clear();
-  //elec_mva_category_nontrig_Spring15_v1_.clear(); elec_mva_category_trig_Spring15_v1_.clear();
-  //elec_mva_wp80_nontrig_Spring15_v1_.clear(); elec_mva_wp90_nontrig_Spring15_v1_.clear();
-  //elec_mva_wp80_trig_Spring15_v1_.clear(); elec_mva_wp90_trig_Spring15_v1_.clear();
-  //elec_cutId_veto_Spring15_.clear(); elec_cutId_loose_Spring15_.clear();
-  //elec_cutId_medium_Spring15_.clear(); elec_cutId_tight_Spring15_.clear();
   elec_mva_value_Spring16_v1_.clear(); elec_mva_category_Spring16_v1_.clear();
   elec_mva_medium_Spring16_v1_.clear(); elec_mva_tight_Spring16_v1_.clear();
   elec_cutId_veto_Summer16_.clear(); elec_cutId_loose_Summer16_.clear();
@@ -433,18 +400,6 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 	elec_pass_conversion_.push_back((*Electrons)[i].passConversionVeto());
 	elecDxy_.push_back(gsfTr_e->dxy(pv_position));
 	elecDz_.push_back(gsfTr_e->dz(pv_position));
-	//elec_mva_value_nontrig_Spring15_v1_.push_back((*mvaNonTrigValues)[el]);
-	//elec_mva_category_nontrig_Spring15_v1_.push_back((*mvaNonTrigCategories)[el]);
-	//elec_mva_value_trig_Spring15_v1_.push_back((*mvaTrigValues)[el]);
-	//elec_mva_category_trig_Spring15_v1_.push_back((*mvaTrigCategories)[el]);
-	//elec_cutId_veto_Spring15_.push_back((*veto_id_decisions)[el]);
-	//elec_cutId_loose_Spring15_.push_back((*loose_id_decisions)[el]);
-	//elec_cutId_medium_Spring15_.push_back((*medium_id_decisions)[el]);
-	//elec_cutId_tight_Spring15_.push_back((*tight_id_decisions)[el]);
-	//elec_mva_wp80_nontrig_Spring15_v1_.push_back((*nontrig_wp80_decisions)[el]);
-	//elec_mva_wp90_nontrig_Spring15_v1_.push_back((*nontrig_wp90_decisions)[el]);
-	//elec_mva_wp80_trig_Spring15_v1_.push_back((*trig_wp80_decisions)[el]);
-	//elec_mva_wp90_trig_Spring15_v1_.push_back((*trig_wp90_decisions)[el]);
 	elec_mva_medium_Spring16_v1_.push_back((*spring16_medium_decisions)[el]);
         elec_mva_tight_Spring16_v1_.push_back((*spring16_tight_decisions)[el]);
 	elec_mva_value_Spring16_v1_.push_back((*mvaSpring16Values)[el]);
@@ -531,6 +486,8 @@ HLTJetMETNtupleProducer::beginJob()
   tree_->Branch("muonIsGlobal", "std::vector<bool>", &muonIsGlobal_);
   tree_->Branch("muonIsTracker", "std::vector<bool>", &muonIsTracker_);
   tree_->Branch("muonIsICHEPMedium", "std::vector<bool>", &muonIsICHEPMedium_);
+  tree_->Branch("muonIsMedium", "std::vector<bool>", &muonIsMedium_);
+  tree_->Branch("muonIsMediumPrompt", "std::vector<bool>", &muonIsMediumPrompt_);
   tree_->Branch("muonDz", "std::vector<float>", &muonDz_);
   tree_->Branch("muonDxy", "std::vector<float>",&muonDxy_);
   //tree_->Branch("muonNormChi2", "std::vector<float>",&muonNormChi2_);
@@ -623,7 +580,7 @@ bool HLTJetMETNtupleProducer::isICHEPMuon(const reco::Muon& recoMu){
     recoMu.combinedQuality().chi2LocalPosition < 12 && 
     recoMu.combinedQuality().trkKink < 20; 
   bool isMedium = muon::isLooseMuon(recoMu) && 
-    recoMu.innerTrack()->validFraction() > 0.49 && 
+    recoMu.innerTrack()->validFraction() > 0.8 && 
     muon::segmentCompatibility(recoMu) > (goodGlob ? 0.303 : 0.451); 
   return isMedium; 
 }
