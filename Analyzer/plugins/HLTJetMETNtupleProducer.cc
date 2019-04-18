@@ -17,7 +17,12 @@ HLTJetMETNtupleProducer::HLTJetMETNtupleProducer(const edm::ParameterSet& iConfi
   isData_ = iConfig.getParameter<bool>("isData");
   PVToken_ = consumes<reco::VertexCollection>(iConfig.getParameter<edm::InputTag>("PVCollectionTag"));
   MetCollectionToken_ = consumes<pat::METCollection>(iConfig.getParameter<edm::InputTag>("MetCollectionTag"));
-  if(!isData_)GenMetCollectionToken_ = consumes<reco::GenMETCollection>(iConfig.getParameter<edm::InputTag>("GenMetCollectionTag"));
+  runMets_ = iConfig.getUntrackedParameter<bool>("runMets", false);
+  if(!isData_){
+    GenMetCollectionToken_ = consumes<reco::GenMETCollection>(iConfig.getParameter<edm::InputTag>("GenMetCollectionTag"));
+    GenJetCollectionToken_= consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("GenJetCollectionTag"));
+    CaloJetCollectionToken_= consumes<reco::CaloJetCollection>(iConfig.getParameter<edm::InputTag>("CaloJetCollectionTag"));
+  }
   applyMETFilters_      = iConfig.getParameter<bool>("applyMETFilters");
   badMuonFilterToken_   = consumes<bool>(iConfig.getParameter<edm::InputTag>("BadMuonFilter"));
   badChargedCandidateFilterToken_ = consumes<bool>(iConfig.getParameter<edm::InputTag>("BadChargedCandidateFilter"));
@@ -25,33 +30,16 @@ HLTJetMETNtupleProducer::HLTJetMETNtupleProducer(const edm::ParameterSet& iConfi
   ElectronCollectionToken_ = consumes<edm::View<pat::Electron> >(iConfig.getParameter<edm::InputTag>("ElectronCollectionTag"));
   if(runJets_ || (!isData_)){
     PFJetCollectionToken_ = consumes<pat::JetCollection>(iConfig.getParameter<edm::InputTag>("PFJetCollectionTag"));
-    CaloJetCollectionToken_= consumes<reco::CaloJetCollection>(iConfig.getParameter<edm::InputTag>("CaloJetCollectionTag"));
-    GenJetCollectionToken_= consumes<reco::GenJetCollection>(iConfig.getParameter<edm::InputTag>("GenJetCollectionTag"));
   }
   if(runJets_){
     HLTPFJetCollectionToken_ = consumes<reco::PFJetCollection>(iConfig.getParameter<edm::InputTag>("HLTPFJetCollectionTag"));
     HLTCaloJetCollectionToken_ = consumes<reco::CaloJetCollection>(iConfig.getParameter<edm::InputTag>("HLTCaloJetCollectionTag"));
   }
-  //eleVetoIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleVetoIdMap"));
-  //eleLooseIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap"));
-  //eleMediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"));
-  //eleTightIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleTightIdMap"));
-  //eleMvaNonTrigWP80MapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaNonTrigIdWP80Map"));
-  //eleMvaNonTrigWP90MapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaNonTrigIdWP90Map"));
-  //eleMvaTrigWP80MapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaTrigIdWP80Map"));
-  //eleMvaTrigWP90MapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaTrigIdWP90Map"));
-  //mvaNonTrigValuesMapToken_ = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaNonTrigValuesMap"));
-  //mvaNonTrigCategoriesMapToken_ = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaNonTrigCategoriesMap"));
-  //mvaTrigValuesMapToken_ = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaTrigValuesMap"));
-  //mvaTrigCategoriesMapToken_ = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaTrigCategoriesMap"));
-  eleMvaSpring16WPMediumMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaSpring16WPMediumMap"));
-  eleMvaSpring16WPTightMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMvaSpring16WPTightMap"));
-  mvaSpring16ValuesMapToken_ = consumes<edm::ValueMap<float> >(iConfig.getParameter<edm::InputTag>("mvaSpring16ValuesMap"));
-  mvaSpring16CategoriesMapToken_ = consumes<edm::ValueMap<int> >(iConfig.getParameter<edm::InputTag>("mvaSpring16CategoriesMap"));
-  eleSummer16VetoIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleSummer16VetoIdMap"));
-  eleSummer16LooseIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleSummer16LooseIdMap"));
-  eleSummer16MediumIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleSummer16MediumIdMap"));
-  eleSummer16TightIdMapToken_ = consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleSummer16TightIdMap"));
+  if(runMets_){
+    HLTPFMetCollectionToken_ = consumes<reco::PFMETCollection>(iConfig.getParameter<edm::InputTag>("HLTPFMetTag"));
+    HLTPFMetType1CollectionToken_ = consumes<reco::PFMETCollection>(iConfig.getParameter<edm::InputTag>("HLTPFMetType1Tag"));
+    HLTCaloMetCollectionToken_ = consumes<reco::CaloMETCollection>(iConfig.getParameter<edm::InputTag>("HLTCaloMetTag"));
+  }
   hlt_ = consumes<edm::TriggerResults>(iConfig.getParameter<edm::InputTag>("hltprocess"));
   triggerPaths_ = iConfig.getUntrackedParameter<std::vector<std::string> >("triggerPaths");
   //triggerBits_          = consumes<edm::TriggerResults>(edm::InputTag(std::string("TriggerResults"),std::string(""),std::string("HLT")));
@@ -136,8 +124,8 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
     obj.unpackPathNames(TrigNames_);
     obj.unpackFilterLabels(iEvent, *hltresults);
     for (unsigned h = 0; h < obj.filterLabels().size(); ++h) {
-      if (obj.hasFilterLabel("hltL1sETM50IorETM60IorETM70IorETM80IorETM90IorETM100") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1;
-      //if (obj.hasFilterLabel("hltL1sAllETMHadSeeds") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1;
+      //if (obj.hasFilterLabel("hltL1sETM50IorETM60IorETM70IorETM80IorETM90IorETM100") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1;
+      if (obj.hasFilterLabel("hltL1sAllETMHFSeeds") || obj.hasFilterLabel("hltL1sAllETMHadSeeds") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1; //2018, 2017, or 2016 filter name
       if (obj.hasFilterLabel("hltMET90")) passedHLTCaloMET_ = 1;
       if (obj.hasFilterLabel("hltMETClean80")) passedHLTCaloMETClean_ = 1;
     }             
@@ -155,6 +143,8 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 	pfjetPhi_.push_back(ipf->phi()); 
       }
     }
+  } //if runJets_ || (!isData_
+  if(!isData_){
     edm::Handle<reco::CaloJetCollection> offlinecalojets;
     iEvent.getByToken(CaloJetCollectionToken_,offlinecalojets);
     calojetPt_.clear(); calojetEta_.clear(); calojetPhi_.clear();
@@ -184,8 +174,8 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<bool> badMuonFilter;
   edm::Handle<bool> badChargedCandidateFilter;
   
-  iEvent.getByToken(badMuonFilterToken_,badMuonFilter);
-  iEvent.getByToken(badChargedCandidateFilterToken_,badChargedCandidateFilter);
+  //iEvent.getByToken(badMuonFilterToken_,badMuonFilter); //old recipe
+  //iEvent.getByToken(badChargedCandidateFilterToken_,badChargedCandidateFilter);
   
   bool passMETFilters = 1;
   bool pass_HBHENoiseFilter = 1;
@@ -194,8 +184,8 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   bool pass_goodVertices = 1;
   bool pass_eeBadScFilter = 1;
   bool pass_globalTightHalo2016Filter = 1;
-  bool pass_badMuonFilter = *badMuonFilter;
-  bool pass_badChargedCandidateFilter = *badChargedCandidateFilter;
+  bool pass_badMuonFilter = 1; //*badMuonFilter;
+  //bool pass_badChargedCandidateFilter = *badChargedCandidateFilter;
   
   
   if( triggerBitsPAT.isValid() )
@@ -231,6 +221,10 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 	    {
 	      if( !isFired ) pass_globalTightHalo2016Filter = 0;
 	    }
+	  else if( strcmp(triggerName.c_str(),"Flag_BadPFMuonFilter") == 0 )
+            {
+              if( !isFired ) pass_badMuonFilter = 0;
+            }
 	}
     }
    
@@ -242,8 +236,7 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 		    pass_goodVertices &&
 		    pass_eeBadScFilter &&
 		    pass_globalTightHalo2016Filter &&
-		    pass_badMuonFilter &&
-		    pass_badChargedCandidateFilter);
+		    pass_badMuonFilter);
   passMETFilter_ = passMETFilters;
   
   if(runJets_){
@@ -270,6 +263,31 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
     }
   }//if runJets_
 
+  if(runMets_){
+    //hlt met
+    edm::Handle<reco::PFMETCollection> hltMETs;
+    iEvent.getByToken(HLTPFMetCollectionToken_, hltMETs);
+    hltPFMetPt_ = 0.; hltPFMetPhi_ = -999.;
+    if(hltMETs.isValid() && hltMETs->size() > 0){
+      hltPFMetPt_ = (*hltMETs)[0].pt();
+      hltPFMetPhi_ = (*hltMETs)[0].phi();
+    }
+    edm::Handle<reco::PFMETCollection> hltMETsType1;
+    iEvent.getByToken(HLTPFMetType1CollectionToken_, hltMETsType1);
+    hltPFMetType1Pt_ = 0.; hltPFMetType1Phi_ = -999.;
+    if(hltMETsType1.isValid() && hltMETsType1->size() > 0){
+      hltPFMetType1Pt_ = (*hltMETsType1)[0].pt();
+      hltPFMetType1Phi_ = (*hltMETsType1)[0].phi();
+    }
+    edm::Handle<reco::CaloMETCollection> hltCaloMETs;
+    iEvent.getByToken(HLTCaloMetCollectionToken_, hltCaloMETs);
+    hltCaloMetPt_ = 0.; hltCaloMetPhi_ = -999.;
+    if(hltCaloMETs.isValid() && hltCaloMETs->size() > 0){
+      hltCaloMetPt_ = (*hltCaloMETs)[0].pt();
+      hltCaloMetPhi_ = (*hltCaloMETs)[0].phi();
+    }
+  }// if runMets_
+
   edm::Handle<pat::METCollection> METs;
   iEvent.getByToken(MetCollectionToken_, METs);
   
@@ -284,26 +302,44 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
     metPy_ = (*METs)[0].py();
     caloMetPt_ = (*METs)[0].caloMETPt();
     caloMetPhi_ = (*METs)[0].caloMETPhi();
-    if(!isData_){
+    /*if(!isData_){
       genMetPt_ = (*METs)[0].genMET()->pt();
       genMetPhi_ = (*METs)[0].genMET()->phi();
-    }
+      }*/
   }
-  /*if(!isData_){
+
+  if(!isData_){
     edm::Handle<reco::GenMETCollection> genMETs;
     iEvent.getByToken(GenMetCollectionToken_, genMETs);
+    float genMetPx_ = 0., genMetPy_ = 0.;
     if(genMETs.isValid() && genMETs->size() > 0){
       genMetPt_ = (*genMETs)[0].pt();
       genMetPhi_ = (*genMETs)[0].phi();
+      genMetPx_ = (*genMETs)[0].px();
+      genMetPy_ = (*genMETs)[0].py();
     }
-  }
-  */
+
+    //Loop over Gen particles and recompute genMET, needed for MonoJet sample
+    edm::Handle<pat::PackedGenParticleCollection> genParts;
+    iEvent.getByToken(genParticleToken_, genParts);
+    for(unsigned int i = 0; i < genParts->size(); i++){
+      if(abs((*genParts)[i].pdgId()) == 5000039){
+	genMetPx_ += (*genParts)[i].px();
+	genMetPy_ += (*genParts)[i].py();
+      }
+    }
+
+    genMetPt_ = TMath::Sqrt(genMetPx_*genMetPx_ + genMetPy_*genMetPy_);
+    genMetPhi_ = TMath::ATan2(genMetPy_, genMetPx_);
+  } //end of !isData
+  
   muonPx_.clear(); muonPy_.clear(); muonPz_.clear(); 
   muonPt_.clear(); muonEta_.clear(); muonPhi_.clear(); muonCharge_.clear();
   muonR04SumChargedHadronPt_.clear(); muonR04SumChargedParticlePt_.clear();
   muonR04SumNeutralHadronEt_.clear(); muonR04SumPhotonEt_.clear();
   muonR04SumPUPt_.clear(); muonIsPF_.clear();
   muonIsGlobal_.clear(); muonIsTracker_.clear(); muonIsICHEPMedium_.clear();
+  muonIsMedium_.clear(); muonIsMediumPrompt_.clear();
   muonDz_.clear(); muonDxy_.clear(); //muonNormChi2_.clear();
   
   edm::Handle<pat::MuonCollection> Muons;
@@ -345,34 +381,13 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   edm::Handle<edm::View<pat::Electron> > Electrons;
   iEvent.getByToken(ElectronCollectionToken_, Electrons);
 
-  // cut based                                                                                                                                                                           
-  edm::Handle<edm::ValueMap<bool> > summer16_veto_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > summer16_loose_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > summer16_medium_id_decisions;
-  edm::Handle<edm::ValueMap<bool> > summer16_tight_id_decisions;
-  iEvent.getByToken(eleSummer16VetoIdMapToken_,summer16_veto_id_decisions);
-  iEvent.getByToken(eleSummer16LooseIdMapToken_,summer16_loose_id_decisions);
-  iEvent.getByToken(eleSummer16MediumIdMapToken_,summer16_medium_id_decisions);
-  iEvent.getByToken(eleSummer16TightIdMapToken_,summer16_tight_id_decisions);
-
-  // mva
-  edm::Handle<edm::ValueMap<bool> > spring16_medium_decisions;
-  edm::Handle<edm::ValueMap<bool> > spring16_tight_decisions;
-  iEvent.getByToken(eleMvaSpring16WPMediumMapToken_,spring16_medium_decisions);
-  iEvent.getByToken(eleMvaSpring16WPTightMapToken_,spring16_tight_decisions);
-
-  edm::Handle<edm::ValueMap<float> > mvaSpring16Values;
-  edm::Handle<edm::ValueMap<int> > mvaSpring16Categories;
-  iEvent.getByToken(mvaSpring16ValuesMapToken_,mvaSpring16Values);
-  iEvent.getByToken(mvaSpring16CategoriesMapToken_,mvaSpring16Categories);
-
   elecPx_.clear(); elecPy_.clear(); elecPz_.clear(); elecPt_.clear(); elecEta_.clear();
   elecPhi_.clear(); elecCharge_.clear(); elecR03SumChargedHadronPt_.clear(); elecR03SumChargedParticlePt_.clear();
   elecR03SumNeutralHadronEt_.clear(); elecR03SumPhotonEt_.clear(); elecR03SumPUPt_.clear();
-  elec_mva_value_Spring16_v1_.clear(); elec_mva_category_Spring16_v1_.clear();
-  elec_mva_medium_Spring16_v1_.clear(); elec_mva_tight_Spring16_v1_.clear();
-  elec_cutId_veto_Summer16_.clear(); elec_cutId_loose_Summer16_.clear();
-  elec_cutId_medium_Summer16_.clear(); elec_cutId_tight_Summer16_.clear();
+  elec_mva_wp90_Spring16_.clear(); elec_mva_wp80_Spring16_.clear();
+  elec_mva_wp90_Fall17Iso_.clear(); elec_mva_wp80_Fall17Iso_.clear(); elec_mva_wpLoose_Fall17Iso_.clear();
+  elec_cutId_loose_Summer16_.clear(); elec_cutId_medium_Summer16_.clear(); elec_cutId_tight_Summer16_.clear();
+  elec_cutId_loose_Fall17_.clear(); elec_cutId_medium_Fall17_.clear(); elec_cutId_tight_Fall17_.clear();
   elec_pass_conversion_.clear(); elec_nmissinginnerhits_.clear();
   elecDxy_.clear(); elecDz_.clear();
   
@@ -397,17 +412,20 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
 	elecR03SumPUPt_.push_back(el->pfIsolationVariables().sumPUPt);
 	reco::GsfTrackRef gsfTr_e = el->gsfTrack();
 	//elec_nmissinginnerhits_.push_back(gsfTr_e->hitPattern().numberOfHits(reco::HitPattern::MISSING_INNER_HITS));
-	elec_pass_conversion_.push_back((*Electrons)[i].passConversionVeto());
+	elec_pass_conversion_.push_back(el->passConversionVeto());
 	elecDxy_.push_back(gsfTr_e->dxy(pv_position));
 	elecDz_.push_back(gsfTr_e->dz(pv_position));
-	elec_mva_medium_Spring16_v1_.push_back((*spring16_medium_decisions)[el]);
-        elec_mva_tight_Spring16_v1_.push_back((*spring16_tight_decisions)[el]);
-	elec_mva_value_Spring16_v1_.push_back((*mvaSpring16Values)[el]);
-        elec_mva_category_Spring16_v1_.push_back((*mvaSpring16Categories)[el]);
-	elec_cutId_veto_Summer16_.push_back((*summer16_veto_id_decisions)[el]);
-        elec_cutId_loose_Summer16_.push_back((*summer16_loose_id_decisions)[el]);
-        elec_cutId_medium_Summer16_.push_back((*summer16_medium_id_decisions)[el]);
-        elec_cutId_tight_Summer16_.push_back((*summer16_tight_id_decisions)[el]);
+	elec_mva_wp90_Spring16_.push_back(el->electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp90"));
+        elec_mva_wp80_Spring16_.push_back(el->electronID("mvaEleID-Spring16-GeneralPurpose-V1-wp80"));
+	elec_mva_wp90_Fall17Iso_.push_back(el->electronID("mvaEleID-Fall17-iso-V2-wp90"));
+	elec_mva_wp80_Fall17Iso_.push_back(el->electronID("mvaEleID-Fall17-iso-V2-wp80"));
+	//elec_mva_wpLoose_Fall17Iso_.push_back(el->electronID("mvaEleID-Fall17-iso-V2-wpLoose"));
+        elec_cutId_loose_Summer16_.push_back(el->electronID("cutBasedElectronID-Summer16-80X-V1-loose"));
+        elec_cutId_medium_Summer16_.push_back(el->electronID("cutBasedElectronID-Summer16-80X-V1-medium"));
+        elec_cutId_tight_Summer16_.push_back(el->electronID("cutBasedElectronID-Summer16-80X-V1-tight"));
+	elec_cutId_loose_Fall17_.push_back(el->electronID("cutBasedElectronID-Fall17-94X-V2-loose"));
+        elec_cutId_medium_Fall17_.push_back(el->electronID("cutBasedElectronID-Fall17-94X-V2-medium"));
+        elec_cutId_tight_Fall17_.push_back(el->electronID("cutBasedElectronID-Fall17-94X-V2-tight"));
       }
     }
   /*
@@ -442,9 +460,6 @@ HLTJetMETNtupleProducer::beginJob()
     tree_->Branch("pfjetPt", "std::vector<float>", &pfjetPt_);
     tree_->Branch("pfjetEta", "std::vector<float>", &pfjetEta_);
     tree_->Branch("pfjetPhi", "std::vector<float>", &pfjetPhi_);
-    tree_->Branch("calojetPt", "std::vector<float>", &calojetPt_);
-    tree_->Branch("calojetEta", "std::vector<float>", &calojetEta_);
-    tree_->Branch("calojetPhi", "std::vector<float>", &calojetPhi_);
   }
   if(runJets_){
     tree_->Branch("hltpfjetPt", "std::vector<float>", &hltpfjetPt_);
@@ -454,7 +469,18 @@ HLTJetMETNtupleProducer::beginJob()
     tree_->Branch("hltcalojetEta", "std::vector<float>", &hltcalojetEta_);
     tree_->Branch("hltcalojetPhi", "std::vector<float>", &hltcalojetPhi_);
   }
+  if(runMets_){
+    tree_->Branch("hltPFMetPt", &hltPFMetPt_, "hltPFMetPt/F");
+    tree_->Branch("hltPFMetPhi", &hltPFMetPhi_, "hltPFMetPhi/F");
+    tree_->Branch("hltPFMetType1Pt", &hltPFMetType1Pt_, "hltPFMetType1Pt/F");
+    tree_->Branch("hltPFMetType1Phi", &hltPFMetType1Phi_, "hltPFMetType1Phi/F");
+    tree_->Branch("hltCaloMetPt", &hltCaloMetPt_, "hltCaloMetPt/F");
+    tree_->Branch("hltCaloMetPhi", &hltCaloMetPhi_, "hltCaloMetPhi/F");
+  }
   if(!isData_){
+    tree_->Branch("calojetPt", "std::vector<float>", &calojetPt_);
+    tree_->Branch("calojetEta", "std::vector<float>", &calojetEta_);
+    tree_->Branch("calojetPhi", "std::vector<float>", &calojetPhi_);
     tree_->Branch("genjetPt", "std::vector<float>", &genjetPt_);
     tree_->Branch("genjetEta", "std::vector<float>", &genjetEta_);
     tree_->Branch("genjetPhi", "std::vector<float>", &genjetPhi_);
@@ -506,27 +532,18 @@ HLTJetMETNtupleProducer::beginJob()
   tree_->Branch("elecR03SumNeutralHadronEt", "std::vector<float>",&elecR03SumNeutralHadronEt_);
   tree_->Branch("elecR03SumPhotonEt", "std::vector<float>",&elecR03SumPhotonEt_);
   tree_->Branch("elecR03SumPUPt", "std::vector<float>",&elecR03SumPUPt_);
-  //tree_->Branch("elec_mva_value_nontrig_Spring15_v1", "std::vector<float>", &elec_mva_value_nontrig_Spring15_v1_);
-  //tree_->Branch("elec_mva_value_trig_Spring15_v1", "std::vector<float>", &elec_mva_value_trig_Spring15_v1_);
-  //tree_->Branch("elec_mva_category_nontrig_Spring15_v1", "std::vector<int>", &elec_mva_category_nontrig_Spring15_v1_);
-  //tree_->Branch("elec_mva_category_trig_Spring15_v1", "std::vector<int>", &elec_mva_category_trig_Spring15_v1_);
-  //tree_->Branch("elec_mva_wp80_nontrig_Spring15_v1", "std::vector<bool>", &elec_mva_wp80_nontrig_Spring15_v1_);
-  //tree_->Branch("elec_mva_wp90_nontrig_Spring15_v1", "std::vector<bool>", &elec_mva_wp90_nontrig_Spring15_v1_);
-  //tree_->Branch("elec_mva_wp80_trig_Spring15_v1", "std::vector<bool>", &elec_mva_wp80_trig_Spring15_v1_);
-  //tree_->Branch("elec_mva_wp90_trig_Spring15_v1", "std::vector<bool>", &elec_mva_wp90_trig_Spring15_v1_);
-  //tree_->Branch("elec_cutId_veto_Spring15", "std::vector<bool>", &elec_cutId_veto_Spring15_);
-  //tree_->Branch("elec_cutId_loose_Spring15", "std::vector<bool>", &elec_cutId_loose_Spring15_);
-  //tree_->Branch("elec_cutId_medium_Spring15", "std::vector<bool>", &elec_cutId_medium_Spring15_);
-  //tree_->Branch("elec_cutId_tight_Spring15", "std::vector<bool>", &elec_cutId_tight_Spring15_);
-  tree_->Branch("elec_mva_medium_Spring16_v1", "std::vector<bool>", &elec_mva_medium_Spring16_v1_);
-  tree_->Branch("elec_mva_tight_Spring16_v1", "std::vector<bool>", &elec_mva_tight_Spring16_v1_);
-  tree_->Branch("elec_mva_value_Spring16_v1", "std::vector<float>", &elec_mva_value_Spring16_v1_);
-  tree_->Branch("elec_mva_category_Spring16_v1", "std::vector<int>", &elec_mva_category_Spring16_v1_);
-  tree_->Branch("elec_cutId_veto_Summer16", "std::vector<bool>", &elec_cutId_veto_Summer16_);
+  tree_->Branch("elec_mva_wp90_Spring16", "std::vector<bool>", &elec_mva_wp90_Spring16_);
+  tree_->Branch("elec_mva_wp80_Spring16", "std::vector<bool>", &elec_mva_wp80_Spring16_);
+  tree_->Branch("elec_mva_wp90_Fall17Iso", "std::vector<bool>", &elec_mva_wp90_Fall17Iso_);
+  tree_->Branch("elec_mva_wp80_Fall17Iso", "std::vector<bool>", &elec_mva_wp80_Fall17Iso_);
+  //tree_->Branch("elec_mva_wpLoose_Fall17Iso", "std::vector<bool>", &elec_mva_wpLoose_Fall17Iso_);
   tree_->Branch("elec_cutId_loose_Summer16", "std::vector<bool>", &elec_cutId_loose_Summer16_);
   tree_->Branch("elec_cutId_medium_Summer16", "std::vector<bool>", &elec_cutId_medium_Summer16_);
   tree_->Branch("elec_cutId_tight_Summer16", "std::vector<bool>", &elec_cutId_tight_Summer16_);
-  tree_->Branch("elec_nmissinginnerhits", "std::vector<unsigned int>", &elec_nmissinginnerhits_);
+  tree_->Branch("elec_cutId_loose_Fall17", "std::vector<bool>", &elec_cutId_loose_Fall17_);
+  tree_->Branch("elec_cutId_medium_Fall17", "std::vector<bool>", &elec_cutId_medium_Fall17_);
+  tree_->Branch("elec_cutId_tight_Fall17", "std::vector<bool>", &elec_cutId_tight_Fall17_);
+  //tree_->Branch("elec_nmissinginnerhits", "std::vector<unsigned int>", &elec_nmissinginnerhits_);
   tree_->Branch("elec_pass_conversion", "std::vector<bool>", &elec_pass_conversion_);
   tree_->Branch("triggerResults", "std::vector<std::string>", &triggerResults_);
   tree_->Branch("passedL1MET", &passedL1MET_,"passedL1MET/i"); 

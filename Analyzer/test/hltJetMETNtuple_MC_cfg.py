@@ -27,7 +27,7 @@ process.load('Configuration.StandardSequences.GeometryDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff')
 if runOnData:
-  process.GlobalTag.globaltag = '92X_dataRun2_HLT_v7'
+  process.GlobalTag.globaltag = '94X_dataRun2_ReReco_EOY17_v2'
 else:
   process.GlobalTag.globaltag = '100X_upgrade2018_realistic_v10'
 
@@ -62,36 +62,16 @@ process.source = cms.Source("PoolSource",
 
 # Electron ID ==========================================================================================
 
-from PhysicsTools.SelectorUtils.tools.vid_id_tools import *
-# turn on VID producer, indicate data format  to be
-# DataFormat.AOD or DataFormat.MiniAOD, as appropriate 
-useAOD = False
-
-if useAOD == True :
-    dataFormat = DataFormat.AOD
-else :
-    dataFormat = DataFormat.MiniAOD
-
-switchOnVIDElectronIdProducer(process, dataFormat)
-
-# define which IDs we want to produce
-my_id_modules = [#'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Spring15_25ns_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.cutBasedElectronID_Summer16_80X_V1_cff',
-                 #'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_Trig_V1_cff',
-                 #'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring15_25ns_nonTrig_V1_cff',
-                 'RecoEgamma.ElectronIdentification.Identification.mvaElectronID_Spring16_GeneralPurpose_V1_cff'
-		 ]
-
-
-#add them to the VID producer
-for idmod in my_id_modules:
-    setupAllVIDIdsInModule(process,idmod,setupVIDElectronSelection)
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+                       era='2017-Nov17ReReco') 
 
 ### END Electron ID ====================================================================================
 
 
 process.hltJetMetNtuple = cms.EDAnalyzer('HLTJetMETNtupleProducer',
                                          runJets = cms.bool(False),
+                                         runMets = cms.untracked.bool(False),
                                          isData = cms.bool(False),
                                          PVCollectionTag = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                          MetCollectionTag = cms.InputTag('slimmedMETs'),
@@ -106,26 +86,6 @@ process.hltJetMetNtuple = cms.EDAnalyzer('HLTJetMETNtupleProducer',
                                          GenJetCollectionTag = cms.InputTag('slimmedGenJets'),
                                          HLTPFJetCollectionTag = cms.InputTag('hltAK4PFJetsCorrected'),
                                          HLTCaloJetCollectionTag = cms.InputTag('hltAK4CaloJetsCorrected'),
-                                         #eleVetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-veto"),
-                                         #eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-loose"),
-                                         #eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-medium"),
-                                         #eleTightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Spring15-25ns-V1-standalone-tight"),
-                                         #eleMvaNonTrigIdWP80Map = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp80"),
-                                         #eleMvaNonTrigIdWP90Map = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-nonTrig-V1-wp90"),
-                                         #eleMvaTrigIdWP80Map = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp80"),
-                                         #eleMvaTrigIdWP90Map = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring15-25ns-Trig-V1-wp90"),
-                                         #mvaNonTrigValuesMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Values"),
-                                         #mvaNonTrigCategoriesMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15NonTrig25nsV1Categories"),
-                                         #mvaTrigValuesMap     = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15Trig25nsV1Values"),
-                                         #mvaTrigCategoriesMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring15Trig25nsV1Categories"),
-                                         eleMvaSpring16WPMediumMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp90"),
-                                         eleMvaSpring16WPTightMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Spring16-GeneralPurpose-V1-wp80"),
-                                         mvaSpring16ValuesMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Values"),
-                                         mvaSpring16CategoriesMap = cms.InputTag("electronMVAValueMapProducer:ElectronMVAEstimatorRun2Spring16GeneralPurposeV1Categories"),
-                                         eleSummer16VetoIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-veto"),
-                                         eleSummer16LooseIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-loose"),
-                                         eleSummer16MediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium"),
-                                         eleSummer16TightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight"),
 					 hltprocess = cms.InputTag('TriggerResults::HLT'),
                                          triggerObjects = cms.InputTag("slimmedPatTrigger"),
                                          triggerPaths = cms.untracked.vstring('HLT_PFMET200_NotCleaned_v',
@@ -155,6 +115,10 @@ process.hltJetMetNtuple = cms.EDAnalyzer('HLTJetMETNtupleProducer',
                                                                               'HLT_Ele30_eta2p1_WPTight_Gsf_v',
                                                                               'HLT_Ele32_WPTight_Gsf_v',
                                                                               'HLT_Ele32_eta2p1_WPTight_Gsf_v',
+                                                                              'HLT_IsoMu24_v',
+                                                                              'HLT_IsoMu24_eta2p1_v',
+                                                                              'HLT_IsoMu27_v',
+                                                                              'HLT_IsoMu30_v',
                                                                               'HLT_PFJet40_v',
                                                                               'HLT_PFJet60_v',
                                                                               'HLT_PFJet80_v',
@@ -182,7 +146,7 @@ process.hltJetMetNtuple = cms.EDAnalyzer('HLTJetMETNtupleProducer',
 process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string("hltJetMetNtuple.root")
 )
-process.p = cms.Path(process.egmGsfElectronIDSequence*
+process.p = cms.Path(process.egammaPostRecoSeq*
 		     process.BadChargedCandidateFilter*
 		     process.BadPFMuonFilter* 
 		     process.hltJetMetNtuple

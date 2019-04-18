@@ -59,6 +59,9 @@
 #include "DataFormats/METReco/interface/GenMET.h"
 #include "DataFormats/METReco/interface/GenMETCollection.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/METReco/interface/CaloMETCollection.h"
+#include "DataFormats/METReco/interface/PFMETCollection.h"
 #include <iostream>
 #include <vector>
 #include "TTree.h"
@@ -86,6 +89,7 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
 
       // ----------member data ---------------------------
   //edm::InputTag hlt_;
+  edm::EDGetTokenT<pat::PackedGenParticleCollection> genParticleToken_;
   edm::EDGetTokenT<pat::METCollection> MetCollectionToken_;
   edm::EDGetTokenT<reco::GenMETCollection> GenMetCollectionToken_;
   edm::EDGetTokenT<pat::MuonCollection> MuonCollectionToken_;
@@ -96,40 +100,21 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   edm::EDGetTokenT<reco::GenJetCollection> GenJetCollectionToken_;
   edm::EDGetTokenT<reco::PFJetCollection> HLTPFJetCollectionToken_;
   edm::EDGetTokenT<reco::CaloJetCollection> HLTCaloJetCollectionToken_;
+  edm::EDGetTokenT<reco::PFMETCollection> HLTPFMetCollectionToken_;
+  edm::EDGetTokenT<reco::PFMETCollection> HLTPFMetType1CollectionToken_;
+  edm::EDGetTokenT<reco::CaloMETCollection> HLTCaloMetCollectionToken_;
   edm::EDGetTokenT<edm::TriggerResults> hlt_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
   std::vector<std::string> triggerPaths_;
-  //// e-ID decisions objects
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleVetoIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleLooseIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaNonTrigWP80MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaNonTrigWP90MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaTrigWP80MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaTrigWP90MapToken_;
-  //// MVA values and categories
-  edm::EDGetTokenT<edm::ValueMap<float> > mvaNonTrigValuesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<int> >   mvaNonTrigCategoriesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<float> > mvaTrigValuesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<int> >   mvaTrigCategoriesMapToken_;
-  //Spring16 MVA
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaSpring16WPMediumMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaSpring16WPTightMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<float> > mvaSpring16ValuesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<int> > mvaSpring16CategoriesMapToken_;
-  //Summer16 cut-based
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16VetoIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16LooseIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16MediumIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16TightIdMapToken_;
 
-  bool runJets_, isData_;
+  bool runJets_, runMets_, isData_;
 
   TTree* tree_;
   unsigned long run_,event_,lumi_;
   float metPx_, metPy_, metPt_, metPhi_, caloMetPt_, caloMetPhi_;
   float genMetPt_, genMetPhi_;
+  float hltPFMetPt_, hltPFMetPhi_, hltPFMetType1Pt_, hltPFMetType1Phi_;
+  float hltCaloMetPt_, hltCaloMetPhi_;
   bool passMETFilter_;
   std::vector<std::string> triggerResults_;
   UInt_t  nPV_;
@@ -198,14 +183,17 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   std::vector<float> elecR03SumNeutralHadronEt_;
   std::vector<float> elecR03SumPhotonEt_;
   std::vector<float> elecR03SumPUPt_;
-  std::vector<bool> elec_mva_medium_Spring16_v1_;
-  std::vector<bool> elec_mva_tight_Spring16_v1_;
-  std::vector<float> elec_mva_value_Spring16_v1_;
-  std::vector<int> elec_mva_category_Spring16_v1_;
-  std::vector<bool> elec_cutId_veto_Summer16_;
+  std::vector<bool> elec_mva_wp90_Spring16_;
+  std::vector<bool> elec_mva_wp80_Spring16_;
+  std::vector<bool> elec_mva_wp90_Fall17Iso_;
+  std::vector<bool> elec_mva_wp80_Fall17Iso_;
+  std::vector<bool> elec_mva_wpLoose_Fall17Iso_;
   std::vector<bool> elec_cutId_loose_Summer16_;
   std::vector<bool> elec_cutId_medium_Summer16_;
   std::vector<bool> elec_cutId_tight_Summer16_;
+  std::vector<bool> elec_cutId_loose_Fall17_;
+  std::vector<bool> elec_cutId_medium_Fall17_;
+  std::vector<bool> elec_cutId_tight_Fall17_;
   std::vector<bool> elec_pass_conversion_;
   std::vector<unsigned int> elec_nmissinginnerhits_;
 };
