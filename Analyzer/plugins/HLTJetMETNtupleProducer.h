@@ -59,6 +59,9 @@
 #include "DataFormats/METReco/interface/GenMET.h"
 #include "DataFormats/METReco/interface/GenMETCollection.h"
 #include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/METReco/interface/CaloMETCollection.h"
+#include "DataFormats/METReco/interface/PFMETCollection.h"
 #include <iostream>
 #include <vector>
 #include "TTree.h"
@@ -96,23 +99,14 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   edm::EDGetTokenT<reco::GenJetCollection> GenJetCollectionToken_;
   edm::EDGetTokenT<reco::PFJetCollection> HLTPFJetCollectionToken_;
   edm::EDGetTokenT<reco::CaloJetCollection> HLTCaloJetCollectionToken_;
+  edm::EDGetTokenT<reco::PFMETCollection> HLTPFMetCollectionToken_;
+  edm::EDGetTokenT<reco::PFMETCollection> HLTPFMetType1CollectionToken_;
+  edm::EDGetTokenT<reco::CaloMETCollection> HLTCaloMetCollectionToken_;
   edm::EDGetTokenT<edm::TriggerResults> hlt_;
   edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> triggerObjects_;
   std::vector<std::string> triggerPaths_;
   //// e-ID decisions objects
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleVetoIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleLooseIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMediumIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleTightIdMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaNonTrigWP80MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaNonTrigWP90MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaTrigWP80MapToken_;
-  edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaTrigWP90MapToken_;
   //// MVA values and categories
-  edm::EDGetTokenT<edm::ValueMap<float> > mvaNonTrigValuesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<int> >   mvaNonTrigCategoriesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<float> > mvaTrigValuesMapToken_;
-  edm::EDGetTokenT<edm::ValueMap<int> >   mvaTrigCategoriesMapToken_;
   //Spring16 MVA
   edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaSpring16WPMediumMapToken_;
   edm::EDGetTokenT<edm::ValueMap<bool> > eleMvaSpring16WPTightMapToken_;
@@ -124,11 +118,13 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16MediumIdMapToken_;
   edm::EDGetTokenT<edm::ValueMap<bool> > eleSummer16TightIdMapToken_;
 
-  bool runJets_, isData_;
+  bool runJets_, runMets_, isData_;
 
   TTree* tree_;
   unsigned long run_,event_,lumi_;
   float metPx_, metPy_, metPt_, metPhi_, caloMetPt_, caloMetPhi_;
+  float hltPFMetPt_, hltPFMetPhi_, hltPFMetType1Pt_, hltPFMetType1Phi_;
+  float hltCaloMetPt_, hltCaloMetPhi_;
   float genMetPt_, genMetPhi_;
   bool passMETFilter_;
   std::vector<std::string> triggerResults_;
@@ -196,18 +192,6 @@ class HLTJetMETNtupleProducer : public edm::EDAnalyzer {
   std::vector<float> elecR03SumNeutralHadronEt_;
   std::vector<float> elecR03SumPhotonEt_;
   std::vector<float> elecR03SumPUPt_;
-  //std::vector<float> elec_mva_value_nontrig_Spring15_v1_;
-  //std::vector<float> elec_mva_value_trig_Spring15_v1_;
-  //std::vector<int> elec_mva_category_nontrig_Spring15_v1_;
-  //std::vector<int> elec_mva_category_trig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp80_nontrig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp90_nontrig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp80_trig_Spring15_v1_;
-  //std::vector<bool> elec_mva_wp90_trig_Spring15_v1_;
-  //std::vector<bool> elec_cutId_veto_Spring15_;
-  //std::vector<bool> elec_cutId_loose_Spring15_;
-  //std::vector<bool> elec_cutId_medium_Spring15_;
-  //std::vector<bool> elec_cutId_tight_Spring15_;
   std::vector<bool> elec_mva_medium_Spring16_v1_;
   std::vector<bool> elec_mva_tight_Spring16_v1_;
   std::vector<float> elec_mva_value_Spring16_v1_;
