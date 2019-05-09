@@ -1,4 +1,4 @@
-# JetMetTrigger, Re-running of Jet Trigger sequence and production of trigger ntuple
+# JetMetTrigger, Re-running of Jet Trigger sequence and production of trigger ntuple, in CMSSW80X and 2016 data only
 
 For data in 2016 (07Aug17 Rereco), 2017 (prompt Reco), and 2018 (prompt reco)
 
