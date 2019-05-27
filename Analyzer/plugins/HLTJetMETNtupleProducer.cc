@@ -130,7 +130,7 @@ HLTJetMETNtupleProducer::analyze(const edm::Event& iEvent, const edm::EventSetup
   passedHLTCaloMETClean_ = 0;
   for (pat::TriggerObjectStandAlone obj : *triggerObjects) {
     obj.unpackPathNames(TrigNames_);
-    obj.unpackFilterLabels(iEvent, *hltresults);
+    //obj.unpackFilterLabels(iEvent, *hltresults);
     for (unsigned h = 0; h < obj.filterLabels().size(); ++h) {
       //if (obj.hasFilterLabel("hltL1sETM50IorETM60IorETM70IorETM80IorETM90IorETM100") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1;
       if (obj.hasFilterLabel("hltL1sAllETMHFSeeds") || obj.hasFilterLabel("hltL1sAllETMHadSeeds") || obj.hasFilterLabel("hltL1sETM50ToETM120")) passedL1MET_ = 1; //2018, 2017, or 2016 filter name
