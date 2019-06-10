@@ -137,7 +137,7 @@ def configureJetMetNtuple(process):
                                            eleSummer16MediumIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-medium"),
                                            eleSummer16TightIdMap = cms.InputTag("egmGsfElectronIDs:cutBasedElectronID-Summer16-80X-V1-tight"),
                                            hltprocess = cms.InputTag('TriggerResults::HLT'),
-                                           triggerObjects = cms.InputTag("slimmedPatTrigger"),
+                                           triggerObjects = cms.InputTag("selectedPatTrigger"),
                                            triggerPaths = cms.untracked.vstring('HLT_PFMET200_NotCleaned_v',                                       
                                                                                 'HLT_PFMET200_HBHECleaned_v',
                                                                                 'HLT_PFMET250_HBHECleaned_v',
